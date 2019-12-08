@@ -3,7 +3,7 @@
 
 Deploy (B)ELK stack with Ansible Docker and monitor the Docker deployment itself.
 
-This Ansible project deploys a fully configured ELK stack secured by an Nginx proxy. For each service there is an Ansible role. Services can be deployed independently.
+This Ansible project deploys a fully configured ELK stack secured by a Nginx proxy. For each service there is an Ansible role. Services can be deployed independently.
 
 Roles:
 

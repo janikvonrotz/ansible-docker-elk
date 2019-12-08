@@ -1,0 +1,56 @@
+---
+- name: Ensure filebeat conf dir exists
+  file:
+    path: "{{ filebeat_conf_dir }}"
+    state: directory
+
+- name: Copy filebeat conf
+  template: src={{ item.src }} dest={{ item.dest }}
+  with_items:
+    - { src: 'templates/filebeat.yml', dest: '{{ filebeat_conf_dir }}/filebeat.yml' }
+  notify: Restart filebeat container
+
+- name: Check filebeat template
+  docker_container:
+    name: "{{ filebeat_hostname }}-run"
+    image: "{{ filebeat_image }}"
+    detach: false
+    cleanup: true
+    command: >
+      /bin/bash -c 'curl -s --user "elastic:{{ elastic_password }}" -X GET "{{ elasticsearch_hostname }}:9200/_cat/templates?v&s=name&pretty" | grep filebeat'
+    networks:
+    - name: "{{ network_name }}"
+  ignore_errors: yes
+  changed_when: false
+  register: check_filebeat_template
+
+- name: Load filebeat template
+  docker_container:
+    name: "{{ filebeat_hostname }}-run"
+    image: "{{ filebeat_image }}"
+    detach: false
+    cleanup: true
+    command: >
+      setup --index-management -E output.logstash.enabled=false -E 'output.elasticsearch.hosts=["{{ elasticsearch_hostname }}:9200"]'
+      -E 'output.elasticsearch.username="elastic"' -E 'output.elasticsearch.password="{{ elastic_password }}"'
+    networks:
+    - name: "{{ network_name }}"
+  when: elasticsearch_hostname is defined and check_filebeat_template.failed
+
+- name: Start filebeat container
+  docker_container:
+    name: "{{ filebeat_hostname }}"
+    image: "{{ filebeat_image }}"
+    user: root
+    env:
+      strict.perms: "false"
+    volumes:
+    - "{{ filebeat_conf_dir }}/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro"
+    - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+    - name: "{{ network_name }}"
+    log_driver: "{{ log_driver }}"
+    log_options:
+      max-size: "{{ log_max_size }}"
+      max-file: "{{ log_max_file }}"

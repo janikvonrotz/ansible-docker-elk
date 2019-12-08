@@ -1,0 +1,16 @@
+ELASTICSEARCH:
+  HOST: "https://{{ server_name }}:9200"
+  USERNAME: "elastic"
+  PASSWORD: "{{ elastic_password }}"
+SCHEDULE:
+  MINUTES: 5
+SMTP:
+  HOST: {{ heartbeatwatcher_smtp_host }}
+  PORT: 587
+  USERNAME: {{ heartbeatwatcher_smtp_username }}
+  PASSWORD: {{ heartbeatwatcher_smtp_password }}
+MAIL:
+  FROM: "{{ heartbeatwatcher_mail_from }}"
+  TO: "{{ heartbeatwatcher_mail_to }}"
+  KIBANA:
+    URL: "https://{{ server_name }}/app/uptime"

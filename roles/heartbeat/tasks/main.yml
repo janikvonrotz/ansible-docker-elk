@@ -1,0 +1,51 @@
+---
+- name: Ensure heartbeat conf dir exists
+  file:
+    path: "{{ heartbeat_conf_dir }}"
+    state: directory
+
+- name: Copy heartbeat conf
+  template: src={{ item.src }} dest={{ item.dest }}
+  with_items:
+    - { src: 'templates/heartbeat.yml', dest: '{{ heartbeat_conf_dir }}/heartbeat.yml' }
+  notify: Restart heartbeat container
+
+- name: Check heartbeat template
+  docker_container:
+    name: "{{ heartbeat_hostname }}-run"
+    image: "{{ heartbeat_image }}"
+    detach: false
+    cleanup: true
+    command: >
+      /bin/bash -c 'curl -s --user "elastic:{{ elastic_password }}" -X GET "{{ elasticsearch_hostname }}:9200/_cat/templates?v&s=name&pretty" | grep heartbeat'
+    networks:
+    - name: "{{ network_name }}"
+  ignore_errors: yes
+  changed_when: false
+  register: check_heartbeat_template
+
+- name: Load heartbeat template
+  docker_container:
+    name: "{{ heartbeat_hostname }}-run"
+    image: "{{ heartbeat_image }}"
+    detach: false
+    cleanup: true
+    command: >
+      setup --index-management -E output.logstash.enabled=false -E 'output.elasticsearch.hosts=["{{ elasticsearch_hostname }}:9200"]'
+      -E 'output.elasticsearch.username="elastic"' -E 'output.elasticsearch.password="{{ elastic_password }}"'
+    networks:
+    - name: "{{ network_name }}"
+  when: elasticsearch_hostname is defined and check_heartbeat_template.failed
+
+- name: Start heartbeat container
+  docker_container:
+    name: "{{ heartbeat_hostname }}"
+    image: "{{ heartbeat_image }}"
+    volumes:
+    - "{{ heartbeat_conf_dir }}/heartbeat.yml:/usr/share/heartbeat/heartbeat.yml:ro"
+    networks:
+    - name: "{{ network_name }}"
+    log_driver: "{{ log_driver }}"
+    log_options:
+      max-size: "{{ log_max_size }}"
+      max-file: "{{ log_max_file }}"

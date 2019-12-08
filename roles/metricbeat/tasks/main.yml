@@ -1,0 +1,59 @@
+---
+
+- name: Ensure metricbeat conf dir exists
+  file:
+    path: "{{ metricbeat_conf_dir }}"
+    state: directory
+
+- name: Copy metricbeat conf
+  template: src={{ item.src }} dest={{ item.dest }}
+  with_items:
+    - { src: 'templates/metricbeat.yml', dest: '{{ metricbeat_conf_dir }}/metricbeat.yml' }
+  notify: Restart metricbeat container
+
+- name: Check metricbeat template
+  docker_container:
+    name: "{{ metricbeat_hostname }}-run"
+    image: "{{ metricbeat_image }}"
+    detach: false
+    cleanup: true
+    command: >
+      /bin/bash -c 'curl -s --user "elastic:{{ elastic_password }}" -X GET "{{ elasticsearch_hostname }}:9200/_cat/templates?v&s=name&pretty" | grep metricbeat'
+    networks:
+    - name: "{{ network_name }}"
+  ignore_errors: yes
+  changed_when: false
+  register: check_metricbeat_template
+
+- name: Load metricbeat template
+  docker_container:
+    name: "{{ metricbeat_hostname }}-run"
+    image: "{{ metricbeat_image }}"
+    detach: false
+    cleanup: true
+    command: >
+      setup --index-management -E output.logstash.enabled=false -E 'output.elasticsearch.hosts=["{{ elasticsearch_hostname }}:9200"]'
+      -E 'output.elasticsearch.username="elastic"' -E 'output.elasticsearch.password="{{ elastic_password }}"'
+    networks:
+    - name: "{{ network_name }}"
+  when: elasticsearch_hostname is defined and check_metricbeat_template.failed
+
+- name: Start metricbeat container
+  docker_container:
+    name: "{{ metricbeat_hostname }}"
+    image: "{{ metricbeat_image }}"
+    user: root
+    env:
+      system.hostfs: "/hostfs"
+    volumes:
+    - "{{ metricbeat_conf_dir }}/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro"
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+    - /proc:/hostfs/proc:ro
+    - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
+    - /:/hostfs:ro
+    networks:
+    - name: "{{ network_name }}"
+    log_driver: "{{ log_driver }}"
+    log_options:
+      max-size: "{{ log_max_size }}"
+      max-file: "{{ log_max_file }}"

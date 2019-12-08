@@ -1,0 +1,119 @@
+---
+- name: Remove elastic search container
+  docker_container:
+    name: "{{ elasticsearch_hostname }}"
+    state: absent
+  tags:
+  - elasticsearch
+
+- name: Clean elastic search conf dir
+  file:
+    state: absent
+    path: "{{ elasticsearch_conf_dir }}"
+  tags:
+  - elasticsearch
+
+- name: Remove kibana container
+  docker_container:
+    name: "{{ kibana_hostname }}"
+    state: absent
+  tags:
+  - kibana
+
+- name: Remove logstash container
+  docker_container:
+    name: "{{ logstash_hostname }}"
+    state: absent
+  tags:
+  - logstash
+
+- name: Clean logstash conf dir
+  file:
+    state: absent
+    path: "{{ logstash_conf_dir }}"
+  tags:
+  - logstash
+
+- name: Remove nginx container
+  docker_container:
+    name: "{{ nginx_hostname }}"
+    state: absent
+  tags:
+  - nginx
+
+- name: Remove certbot container
+  docker_container:
+    name: "{{ certbot_hostname }}"
+    state: absent
+  tags:
+  - nginx
+
+- name: Clean nginx conf dir
+  file:
+    state: absent
+    path: "{{ nginx_conf_dir }}"
+  tags:
+  - nginx
+
+- name: Remove heartbeat container
+  docker_container:
+    name: "{{ heartbeat_hostname }}"
+    state: absent
+  tags:
+  - heartbeat
+
+- name: Clean heartbeat conf dir
+  file:
+    state: absent
+    path: "{{ heartbeat_conf_dir }}"
+  tags:
+  - heartbeat
+
+- name: Remove filebeat container
+  docker_container:
+    name: "{{ filebeat_hostname }}"
+    state: absent
+  tags:
+  - filebeat
+
+- name: Clean filebeat conf dir
+  file:
+    state: absent
+    path: "{{ filebeat_conf_dir }}"
+  tags:
+  - filebeat
+
+- name: Remove metricbeat container
+  docker_container:
+    name: "{{ metricbeat_hostname }}"
+    state: absent
+  tags:
+  - metricbeat
+
+- name: Clean metricbeat conf dir
+  file:
+    state: absent
+    path: "{{ metricbeat_conf_dir }}"
+  tags:
+  - metricbeat
+
+- name: Remove heartbeat watcher container
+  docker_container:
+    name: "{{ heartbeatwatcher_hostname }}"
+    state: absent
+  tags:
+  - heartbeat-watcher
+
+- name: Clean heartbeat watcher conf dir
+  file:
+    state: absent
+    path: "{{ heartbeatwatcher_conf_dir }}"
+  tags:
+  - heartbeat-watcher
+
+- name: Remove docker network
+  docker_network:
+    name: "{{ network_name }}"
+    state: absent
+  tags:
+  - docker

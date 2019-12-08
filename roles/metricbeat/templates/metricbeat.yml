@@ -1,0 +1,37 @@
+name: "{{ metricbeat_servername }}"
+output.logstash:
+  hosts: "{{ logstash_hostname }}:5044"
+{% if kibana_hostname is defined %}
+setup.kibana:
+  host: "{{ kibana_hostname }}:5601"
+  user: "kibana"
+  password: "{{ kibana_password }}"
+{% endif %}
+metricbeat.modules:
+  - module: system
+    period: 60s
+    metricsets:
+      - cpu
+      - load
+      - memory
+      - network
+      - process
+      - process_summary
+      - uptime
+      - socket_summary
+      - filesystem
+    processes: ['.*']
+    filesystem.ignore_types: [nfs, smbfs, autofs]
+  - module: docker
+    metricsets:
+      - container
+      - cpu
+      - diskio
+      - event
+      - healthcheck
+      - info
+      - memory
+      - network
+    hosts: ["unix:///var/run/docker.sock"]
+    period: 60s
+cpu.metrics:  ["percentages"]

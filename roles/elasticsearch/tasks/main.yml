@@ -1,0 +1,31 @@
+- name: Create elastic search volume
+  docker_volume:
+    name: esdata
+    driver: local
+
+- name: Start elastic search container
+  docker_container:
+    name: "{{ elasticsearch_hostname }}"
+    image: "{{ elasticsearch_image }}"
+    env:
+      discovery.type: "single-node"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+      xpack.security.enabled: "true"
+      xpack.monitoring.collection.enabled: "true"
+    volumes:
+    - "esdata:/usr/share/elasticsearch/data"
+    ulimits:
+    - nofile:65535:65535
+    networks:
+    - name: "{{ network_name }}"
+    state: started
+    log_driver: "{{ log_driver }}"
+    log_options:
+      max-size: "{{ log_max_size }}"
+      max-file: "{{ log_max_file }}"
+
+- debug:
+    msg: >
+      Users have to be configured manually. Enable and set the password for the default users with:
+      `docker exec -it {{ elasticsearch_hostname }} /bin/bash -c "elasticsearch-setup-passwords auto"`
+      Then edit the `vaul.yml` file and copy the password values to the expected variable.

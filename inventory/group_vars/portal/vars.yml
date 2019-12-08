@@ -1,0 +1,15 @@
+network_name: dockermachine_main
+
+logstash_hostname: status.example.com
+
+metricbeat_image: docker.elastic.co/beats/metricbeat:7.4.2
+metricbeat_hostname: metricbeat03
+metricbeat_servername: portal.example.com
+metricbeat_conf_dir: /usr/share/metricbeat
+
+filebeat_image: docker.elastic.co/beats/filebeat:7.4.2
+filebeat_hostname: filebeat03
+filebeat_servername: portal.example.com
+filebeat_conf_dir: /usr/share/filebeat
+
+elastic_password: "{{ vault_elastic_password }}"

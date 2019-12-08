@@ -1,0 +1,4 @@
+- name: Restart heartbeatwatcher container
+  docker_container:
+    name: "{{ heartbeatwatcher_hostname }}"
+    restart: true

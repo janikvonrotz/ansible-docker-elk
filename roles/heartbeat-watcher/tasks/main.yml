@@ -1,0 +1,28 @@
+---
+
+- name: Ensure heartbeat watcher conf dir exists
+  file:
+    path: "{{ heartbeatwatcher_conf_dir }}"
+    state: directory
+
+- name: Copy heartbeat watcher conf
+  template: src={{ item.src }} dest={{ item.dest }}
+  with_items:
+    - { src: 'templates/heartbeatwatcher.yml', dest: '{{ heartbeatwatcher_conf_dir }}/heartbeatwatcher.yml' }
+  notify: Restart heartbeatwatcher container
+
+- name: Start heartbeat watcher container
+  docker_container:
+    name: "{{ heartbeatwatcher_hostname }}"
+    image: "{{ heartbeatwatcher_image }}"
+    env:
+      SERVER_HOST: "0.0.0.0"
+      SERVER_PORT: "4000"
+    volumes:
+    - "{{ heartbeatwatcher_conf_dir }}/heartbeatwatcher.yml:/usr/src/app/heartbeatwatcher.yml:ro"
+    networks:
+    - name: "{{ network_name }}"
+    log_driver: "{{ log_driver }}"
+    log_options:
+      max-size: "{{ log_max_size }}"
+      max-file: "{{ log_max_file }}"

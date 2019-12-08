@@ -1,0 +1,51 @@
+server_name: status.example.com
+network_name: esnet
+
+nginx_image: nginx:1.15-alpine
+nginx_hostname: ng01
+nginx_conf_dir: /usr/share/nginx
+
+elasticsearch_image: docker.elastic.co/elasticsearch/elasticsearch:7.4.2
+elasticsearch_hostname: es01
+elasticsearch_conf_dir: /usr/share/elasticsearch
+
+kibana_image: docker.elastic.co/kibana/kibana:7.4.2
+kibana_hostname: ki01
+
+logstash_image: docker.elastic.co/logstash/logstash:7.4.2
+logstash_hostname: lo01
+logstash_conf_dir: /usr/share/logstash
+
+certbot_image: certbot/certbot
+certbot_hostname: cb01
+certbot_conf_dir: /usr/share/certbot
+certbot_email: info@example.com
+
+heartbeat_image: docker.elastic.co/beats/heartbeat:7.4.2
+heartbeat_hostname: hb01
+heartbeat_servername: status.example.com
+heartbeat_conf_dir: /usr/share/heartbeat
+heartbeat_urls:
+- https://example.com
+- https://status.example.com
+metricbeat_image: docker.elastic.co/beats/metricbeat:7.4.2
+metricbeat_hostname: mb01
+metricbeat_servername: status.example.com
+metricbeat_conf_dir: /usr/share/metricbeat
+
+filebeat_image: docker.elastic.co/beats/filebeat:7.4.2
+filebeat_hostname: fb01
+filebeat_servername: status.example.com
+filebeat_conf_dir: /usr/share/filebeat
+
+elastic_password: "{{ vault_elastic_password }}"
+kibana_password: "{{ vault_kibana_password }}"
+
+heartbeatwatcher_image: nexus.example.com:4043/heartbeat-watcher:1.0.1
+heartbeatwatcher_hostname: "hw01"
+heartbeatwatcher_conf_dir: /usr/share/heartbeatwatcher
+heartbeatwatcher_smtp_host: "login.example.com"
+heartbeatwatcher_smtp_username: "status@example.com"
+heartbeatwatcher_smtp_password: "{{ vault_heartbeatwatcher_smtp_password }}"
+heartbeatwatcher_mail_to: "contact@example.com"
+heartbeatwatcher_mail_from: "status@example.com"

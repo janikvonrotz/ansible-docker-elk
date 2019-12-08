@@ -1,0 +1,14 @@
+name: "{{ heartbeat_servername }}"
+output.logstash:
+  hosts: "{{ logstash_hostname }}:5044"
+{% if kibana_hostname is defined %}
+setup.kibana:
+  host: "{{ kibana_hostname }}:5601"
+  user: "kibana"
+  password: "{{ kibana_password }}"
+{% endif %}
+heartbeat.monitors:
+- type: http
+  name: http
+  urls: {{ heartbeat_urls | list | to_json }}
+  schedule: "@every 60s"

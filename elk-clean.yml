@@ -1,0 +1,4 @@
+- hosts: "{{ ehosts | default('prod') }}"
+  become: true
+  roles:
+  - clean

@@ -1,0 +1,33 @@
+- name: Ensure logstash pipeline conf dir exists
+  file:
+    path: "{{ logstash_conf_dir }}/pipeline"
+    state: directory
+
+- name: Copy logstash pipeline conf
+  template: src={{ item.src }} dest={{ item.dest }}
+  with_items:
+    - { src: 'templates/syslog.conf', dest: '/{{ logstash_conf_dir }}/pipeline/syslog.conf' }
+    - { src: 'templates/beats.conf', dest: '/{{ logstash_conf_dir }}/pipeline/beats.conf' }
+  notify: Restart logstash container
+
+- name: Start logstash container
+  docker_container:
+    name: "{{ logstash_hostname }}"
+    image: "{{ logstash_image }}"
+    env:
+      XPACK_MONITORING_ELASTICSEARCH_HOSTS: "http://{{ elasticsearch_hostname }}:9200"
+      XPACK_MONITORING_ENABLED: "true"
+      XPACK_MONITORING_ELASTICSEARCH_USERNAME: "elastic"
+      XPACK_MONITORING_ELASTICSEARCH_PASSWORD: "{{ elastic_password }}"
+      PATH_CONFIG: ""
+    ports:
+    - 5000:5000
+    - 5044:5044
+    volumes:
+    - "{{ logstash_conf_dir }}/pipeline:/usr/share/logstash/pipeline:ro"
+    networks:
+    - name: "{{ network_name }}"
+    log_driver: "{{ log_driver }}"
+    log_options:
+      max-size: "{{ log_max_size }}"
+      max-file: "{{ log_max_file }}"
